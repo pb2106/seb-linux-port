@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) 2026 ETH Zürich, IT Services
  * 
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -43,9 +43,27 @@ namespace SafeExamBrowser.Configuration.ConfigurationData
 			var programCopyright = executable.GetCustomAttribute<AssemblyCopyrightAttribute>().Copyright;
 			var programTitle = executable.GetCustomAttribute<AssemblyTitleAttribute>().Title;
 			var programVersion = executable.GetCustomAttribute<AssemblyInformationalVersionAttribute>().InformationalVersion;
-			var appDataLocalFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), nameof(SafeExamBrowser));
-			var appDataRoamingFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), nameof(SafeExamBrowser));
-			var programDataFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), nameof(SafeExamBrowser));
+			var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.DoNotVerify);
+			if (string.IsNullOrEmpty(localAppData))
+			{
+				var home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+				localAppData = string.IsNullOrEmpty(home) ? "/tmp" : Path.Combine(home, ".local", "share");
+			}
+			var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData, Environment.SpecialFolderOption.DoNotVerify);
+			if (string.IsNullOrEmpty(appData))
+			{
+				var home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+				appData = string.IsNullOrEmpty(home) ? "/tmp" : Path.Combine(home, ".config");
+			}
+			var commonAppData = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData, Environment.SpecialFolderOption.DoNotVerify);
+			if (string.IsNullOrEmpty(commonAppData))
+			{
+				commonAppData = "/etc";
+			}
+
+			var appDataLocalFolder = Path.Combine(localAppData, nameof(SafeExamBrowser));
+			var appDataRoamingFolder = Path.Combine(appData, nameof(SafeExamBrowser));
+			var programDataFolder = Path.Combine(commonAppData, nameof(SafeExamBrowser));
 			var temporaryFolder = Path.Combine(appDataLocalFolder, "Temp");
 			var startTime = DateTime.Now;
 			var logFolder = Path.Combine(appDataLocalFolder, "Logs");

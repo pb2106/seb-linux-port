@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) 2026 ETH Zürich, IT Services
  * 
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -178,7 +178,7 @@ namespace SafeExamBrowser.Browser
 			windowHandlingResponsibility.LoseFocusRequested += (f) => LoseFocusRequested?.Invoke(f);
 			windowHandlingResponsibility.TerminationRequested += () => TerminationRequested?.Invoke();
 			windowHandlingResponsibility.UserIdentifierDetected += (i) => UserIdentifierDetected?.Invoke(i);
-			windowHandlingResponsibility.WindowsChanged += () => WindowsChanged.Invoke();
+			windowHandlingResponsibility.WindowsChanged += () => WindowsChanged?.Invoke();
 
 			context.Responsibilities = new ResponsibilityCollection<BrowserTask>(logger, new BrowserResponsibility[]
 			{

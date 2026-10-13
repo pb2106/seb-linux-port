@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) 2026 ETH Zürich, IT Services
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -119,6 +119,11 @@ namespace SafeExamBrowser.Communication.Proxies
 
 			private object Call(object request)
 			{
+				if (State == CommunicationState.Created)
+				{
+					Open();
+				}
+
 				if (State != CommunicationState.Opened)
 					throw new InvalidOperationException("Proxy is not open.");
 

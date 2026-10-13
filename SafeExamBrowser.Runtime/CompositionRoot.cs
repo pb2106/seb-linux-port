@@ -241,11 +241,20 @@ namespace SafeExamBrowser.Runtime
 
 		private void InitializeLogging()
 		{
-			var logFileWriter = new LogFileWriter(new DefaultLogFormatter(), appConfig.RuntimeLogFilePath);
+			var formatter = new DefaultLogFormatter();
+			var logFileWriter = new LogFileWriter(formatter, appConfig.RuntimeLogFilePath);
 
 			logFileWriter.Initialize();
 			logger.LogLevel = LogLevel.Debug;
 			logger.Subscribe(logFileWriter);
+			logger.Subscribe(new ConsoleLogObserver(formatter));
+		}
+
+		private class ConsoleLogObserver : ILogObserver
+		{
+			private readonly ILogContentFormatter formatter;
+			public ConsoleLogObserver(ILogContentFormatter formatter) => this.formatter = formatter;
+			public void Notify(ILogContent content) => Console.WriteLine(formatter.Format(content));
 		}
 
 		private void InitializeText()

@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) 2026 ETH Zürich, IT Services
  * 
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -38,6 +38,12 @@ namespace SafeExamBrowser.SystemComponents
 
 		public void Save(string content, string path)
 		{
+			var directory = Path.GetDirectoryName(path);
+			if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
+			{
+				Directory.CreateDirectory(directory);
+			}
+
 			File.WriteAllText(path, content);
 		}
 

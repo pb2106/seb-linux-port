@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) 2026 ETH Zürich, IT Services
  * 
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -27,6 +27,12 @@ namespace SafeExamBrowser.Monitoring.System.Components
 
 		internal void StartMonitoring()
 		{
+			if (!OperatingSystem.IsWindows())
+			{
+				logger.Info("System events monitoring is not supported on this platform.");
+				return;
+			}
+
 			Microsoft.Win32.SystemEvents.EventsThreadShutdown += SystemEvents_EventsThreadShutdown;
 			Microsoft.Win32.SystemEvents.InstalledFontsChanged += SystemEvents_InstalledFontsChanged;
 			Microsoft.Win32.SystemEvents.PowerModeChanged += SystemEvents_PowerModeChanged;
@@ -41,6 +47,11 @@ namespace SafeExamBrowser.Monitoring.System.Components
 
 		internal void StopMonitoring()
 		{
+			if (!OperatingSystem.IsWindows())
+			{
+				return;
+			}
+
 			Microsoft.Win32.SystemEvents.EventsThreadShutdown -= SystemEvents_EventsThreadShutdown;
 			Microsoft.Win32.SystemEvents.InstalledFontsChanged -= SystemEvents_InstalledFontsChanged;
 			Microsoft.Win32.SystemEvents.PowerModeChanged -= SystemEvents_PowerModeChanged;

@@ -89,24 +89,57 @@ namespace SafeExamBrowser.SystemComponents
 
 		private void InitializeMacAddress()
 		{
-			const string UNDEFINED = "000000000000";
-
 			try
 			{
-				var iface = NetworkInterface.GetAllNetworkInterfaces()
-					.FirstOrDefault(n =>
-						n.OperationalStatus == OperationalStatus.Up &&
+				var interfaces = NetworkInterface.GetAllNetworkInterfaces()
+					.Where(n =>
 						n.NetworkInterfaceType != NetworkInterfaceType.Loopback &&
-						n.NetworkInterfaceType != NetworkInterfaceType.Tunnel);
+						n.NetworkInterfaceType != NetworkInterfaceType.Tunnel &&
+						n.GetPhysicalAddress().GetAddressBytes().Length >= 6)
+					.ToList();
+				var iface = interfaces.FirstOrDefault(n => n.OperationalStatus == OperationalStatus.Up)
+					?? interfaces.FirstOrDefault();
 
-				MacAddress = iface != null
-					? BitConverter.ToString(iface.GetPhysicalAddress().GetAddressBytes()).Replace("-", "").ToUpper()
-					: UNDEFINED;
+				if (iface != null)
+				{
+					var mac = BitConverter.ToString(iface.GetPhysicalAddress().GetAddressBytes()).Replace("-", "").ToUpper();
+					if (mac != "000000000000")
+					{
+						MacAddress = mac;
+						return;
+					}
+				}
 			}
 			catch
 			{
-				MacAddress = UNDEFINED;
 			}
+
+			try
+			{
+				if (Directory.Exists("/sys/class/net"))
+				{
+					foreach (var dir in Directory.GetDirectories("/sys/class/net"))
+					{
+						var name = Path.GetFileName(dir);
+						if (name == "lo") continue;
+						var addrFile = Path.Combine(dir, "address");
+						if (File.Exists(addrFile))
+						{
+							var mac = File.ReadAllText(addrFile).Trim().Replace(":", "").Replace("-", "").ToUpper();
+							if (!string.IsNullOrEmpty(mac) && mac != "000000000000")
+							{
+								MacAddress = mac;
+								return;
+							}
+						}
+					}
+				}
+			}
+			catch
+			{
+			}
+
+			MacAddress = string.Empty;
 		}
 
 		private void InitializeMachineInfo()

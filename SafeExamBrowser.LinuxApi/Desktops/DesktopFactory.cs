@@ -94,17 +94,18 @@ namespace SafeExamBrowser.LinuxApi.Desktops
 
 			if (server == null)
 			{
-				logger.Error($"Failed to create new desktop '{name}'! Neither Xorg nor Xephyr could be started.");
-
-				throw new Win32Exception("Neither Xorg nor Xephyr could be started for the new desktop.");
+				server = Launch("Xvfb", $"{display} -screen 0 1920x1080x24 -nolisten tcp -auth \"{authority}\"", null, null);
 			}
 
-			if (!WaitForServer(display, authority))
+			if (server == null || !WaitForServer(display, authority))
 			{
-				server.Kill();
-				logger.Error($"Failed to create new desktop '{name}'! The X server did not become ready.");
+				if (server != null)
+				{
+					try { server.Kill(); } catch { }
+				}
 
-				throw new Win32Exception("The X server of the new desktop did not become ready.");
+				logger.Warn($"Could not start isolated X server for desktop '{name}', falling back to current display.");
+				return LinuxDesktop.CreateCurrent(name);
 			}
 
 			var windowManager = StartWindowManager(display, authority);

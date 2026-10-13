@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) 2026 ETH Zürich, IT Services
  * 
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -14,6 +14,7 @@ namespace SafeExamBrowser.Configuration.Contracts
 	/// <summary>
 	/// Container holding all session-related configuration data.
 	/// </summary>
+	[Serializable]
 	public class SessionConfiguration
 	{
 		/// <summary>

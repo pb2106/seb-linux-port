@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) 2026 ETH Zürich, IT Services
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -80,6 +80,11 @@ namespace SafeExamBrowser.SystemComponents.Registry
 
 			value = default;
 
+			if (!OperatingSystem.IsWindows())
+			{
+				return false;
+			}
+
 			try
 			{
 				value = Microsoft.Win32.Registry.GetValue(key, name, defaultValue);
@@ -95,6 +100,12 @@ namespace SafeExamBrowser.SystemComponents.Registry
 		public bool TryGetNames(string keyName, out IEnumerable<string> names)
 		{
 			names = default;
+
+			if (!OperatingSystem.IsWindows())
+			{
+				names = Array.Empty<string>();
+				return true;
+			}
 
 			if (TryOpenKey(keyName, out var key))
 			{
@@ -122,6 +133,12 @@ namespace SafeExamBrowser.SystemComponents.Registry
 		{
 			subKeys = default;
 
+			if (!OperatingSystem.IsWindows())
+			{
+				subKeys = Array.Empty<string>();
+				return false;
+			}
+
 			if (TryOpenKey(keyName, out var key))
 			{
 				using (key)
@@ -146,6 +163,11 @@ namespace SafeExamBrowser.SystemComponents.Registry
 
 		private bool Exists(string key, string name)
 		{
+			if (!OperatingSystem.IsWindows())
+			{
+				return false;
+			}
+
 			var defaultValue = new object();
 			var value = default(object);
 

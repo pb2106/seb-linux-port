@@ -69,25 +69,27 @@ namespace SafeExamBrowser.LinuxApi.Desktops
 
 		public void Activate()
 		{
-			if (Vt > 0)
+			if (Vt > 0 && LibC.geteuid() == 0)
 			{
-				var tty = LibC.open("/dev/tty0", LibC.O_RDWR);
-
-				if (tty < 0)
-				{
-					throw new Win32Exception(System.Runtime.InteropServices.Marshal.GetLastWin32Error());
-				}
-
 				try
 				{
-					if (LibC.ioctl(tty, VT_ACTIVATE, Vt) < 0 || LibC.ioctl(tty, VT_WAITACTIVE, Vt) < 0)
+					var tty = LibC.open("/dev/tty0", LibC.O_RDWR);
+
+					if (tty >= 0)
 					{
-						throw new Win32Exception(System.Runtime.InteropServices.Marshal.GetLastWin32Error());
+						try
+						{
+							LibC.ioctl(tty, VT_ACTIVATE, Vt);
+							LibC.ioctl(tty, VT_WAITACTIVE, Vt);
+						}
+						finally
+						{
+							LibC.close(tty);
+						}
 					}
 				}
-				finally
+				catch
 				{
-					LibC.close(tty);
 				}
 			}
 		}
