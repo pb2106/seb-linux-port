@@ -105,20 +105,36 @@ namespace SafeExamBrowser.LinuxApi.Processes
 
 			try
 			{
-				var executable = Directory.ResolveLinkTarget($"/proc/{process.Id}/exe", false)?.FullName;
-
-				if (executable != null)
+				var exeLink = $"/proc/{process.Id}/exe";
+				if (File.Exists(exeLink))
 				{
-					path = executable.Replace(" (deleted)", string.Empty);
-					name = Path.GetFileName(path);
+					var executable = Directory.ResolveLinkTarget(exeLink, false)?.FullName;
+
+					if (executable != null)
+					{
+						path = executable.Replace(" (deleted)", string.Empty);
+						name = Path.GetFileName(path);
+					}
 				}
 
-				originalName = File.ReadAllText($"/proc/{process.Id}/comm").Trim();
+				var commPath = $"/proc/{process.Id}/comm";
+				if (File.Exists(commPath))
+				{
+					originalName = File.ReadAllText(commPath).Trim();
+				}
 
 				if (path != default && File.Exists(path))
 				{
 					signature = PackageSignature.Compute(path);
 				}
+			}
+			catch (UnauthorizedAccessException)
+			{
+				// Normal for kernel threads and processes owned by root/other users when running unprivileged
+			}
+			catch (IOException)
+			{
+				// Process might have terminated while reading procfs
 			}
 			catch (Exception e)
 			{

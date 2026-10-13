@@ -212,21 +212,38 @@ namespace SafeExamBrowser.Monitoring.Applications
 
 		private bool BelongsToSafeExamBrowser(IProcess process)
 		{
+			if (!OperatingSystem.IsWindows())
+			{
+				var isSebLinux = (process.Name == "SafeExamBrowser" || process.Name == "SafeExamBrowser.Runtime" || process.Name == "SafeExamBrowser.Client")
+					|| (process.OriginalName == "SafeExamBrowser" || process.OriginalName == "SafeExamBrowser.Runtime" || process.OriginalName == "SafeExamBrowser.Client");
+
+				var pName = process.Name?.ToLowerInvariant() ?? string.Empty;
+				var pOrig = process.OriginalName?.ToLowerInvariant() ?? string.Empty;
+				var isBrowser = pName.Contains("firefox") || pOrig.Contains("firefox")
+					|| pName.Contains("chrome") || pOrig.Contains("chrome")
+					|| pName.Contains("chromium") || pOrig.Contains("chromium")
+					|| pName.Contains("brave") || pOrig.Contains("brave")
+					|| pName.Contains("epiphany") || pOrig.Contains("epiphany")
+					|| pName.Contains("webcontent") || pOrig.Contains("webcontent")
+					|| pName.Contains("privileged") || pOrig.Contains("privileged")
+					|| pName.Contains("isolated web") || pOrig.Contains("isolated web")
+					|| pName.Contains("geckomain") || pOrig.Contains("geckomain");
+
+				return isSebLinux || isBrowser;
+			}
+
 			var isClient = true;
 			var isRuntime = true;
 
-			isClient &= process.Name == "SafeExamBrowser.Client.exe" || (!OperatingSystem.IsWindows() && process.Name == "SafeExamBrowser.Client");
-			isClient &= process.OriginalName == "SafeExamBrowser.Client.exe" || (!OperatingSystem.IsWindows() && process.OriginalName == "SafeExamBrowser.Client");
+			isClient &= process.Name == "SafeExamBrowser.Client.exe";
+			isClient &= process.OriginalName == "SafeExamBrowser.Client.exe";
 
-			isRuntime &= process.Name == "SafeExamBrowser.exe" || (!OperatingSystem.IsWindows() && (process.Name == "SafeExamBrowser" || process.Name == "SafeExamBrowser.Runtime"));
-			isRuntime &= process.OriginalName == "SafeExamBrowser.exe" || (!OperatingSystem.IsWindows() && (process.OriginalName == "SafeExamBrowser" || process.OriginalName == "SafeExamBrowser.Runtime"));
+			isRuntime &= process.Name == "SafeExamBrowser.exe";
+			isRuntime &= process.OriginalName == "SafeExamBrowser.exe";
 
 #if !DEBUG
-			if (OperatingSystem.IsWindows())
-			{
-				isClient &= process.Signature == "ecac9df025f5d208f6190fc4d6f9d329576598c7";
-				isRuntime &= process.Signature == "ecac9df025f5d208f6190fc4d6f9d329576598c7";
-			}
+			isClient &= process.Signature == "ecac9df025f5d208f6190fc4d6f9d329576598c7";
+			isRuntime &= process.Signature == "ecac9df025f5d208f6190fc4d6f9d329576598c7";
 #endif
 
 			return isClient || isRuntime;

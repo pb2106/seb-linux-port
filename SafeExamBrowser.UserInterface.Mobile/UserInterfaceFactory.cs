@@ -66,7 +66,7 @@ namespace SafeExamBrowser.UserInterface.Mobile
 
 		public IBrowserWindow CreateBrowserWindow(IBrowserControl control, BrowserSettings settings, bool isMainWindow, ILogger logger)
 		{
-			return Guard(new CrossPlatformBrowserWindow());
+			return Guard(new CrossPlatformBrowserWindow(control, settings, isMainWindow, logger));
 		}
 
 		public ICredentialsDialog CreateCredentialsDialog(CredentialsDialogPurpose purpose, string message, string title)

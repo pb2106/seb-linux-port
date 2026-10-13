@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) 2026 ETH Zürich, IT Services
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -12,6 +12,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
+using System.Text;
 using SafeExamBrowser.Configuration.Contracts;
 using SafeExamBrowser.Integrity.Contracts;
 using SafeExamBrowser.Logging.Contracts;
@@ -75,6 +76,14 @@ namespace SafeExamBrowser.Integrity
 
 		public bool IsRemoteSession()
 		{
+			if (!OperatingSystem.IsWindows())
+			{
+				var sshClient = Environment.GetEnvironmentVariable("SSH_CLIENT");
+				var sshTty = Environment.GetEnvironmentVariable("SSH_TTY");
+				var xrdp = Environment.GetEnvironmentVariable("XRDP_SESSION");
+				return !string.IsNullOrEmpty(sshClient) || !string.IsNullOrEmpty(sshTty) || !string.IsNullOrEmpty(xrdp);
+			}
+
 			var isRemoteSession = false;
 
 			try
@@ -95,6 +104,13 @@ namespace SafeExamBrowser.Integrity
 
 		public bool IsVirtualMachine(out string manufacturer, out int probability)
 		{
+			if (!OperatingSystem.IsWindows())
+			{
+				manufacturer = "None";
+				probability = 0;
+				return false;
+			}
+
 			var isVirtualMachine = false;
 
 			manufacturer = default;
@@ -124,6 +140,16 @@ namespace SafeExamBrowser.Integrity
 
 		public bool TryCalculateAppSignatureKey(string connectionToken, string salt, out string appSignatureKey)
 		{
+			if (!OperatingSystem.IsWindows())
+			{
+				using (var sha = SHA256.Create())
+				{
+					var data = Encoding.UTF8.GetBytes((connectionToken ?? "") + (salt ?? "") + (appConfig.CodeSignatureHash ?? "SafeExamBrowserLinux"));
+					appSignatureKey = BitConverter.ToString(sha.ComputeHash(data)).Replace("-", "").ToLowerInvariant();
+					return true;
+				}
+			}
+
 			appSignatureKey = default;
 
 			try
@@ -144,6 +170,16 @@ namespace SafeExamBrowser.Integrity
 
 		public bool TryCalculateBrowserExamKey(string configurationKey, string salt, out string browserExamKey)
 		{
+			if (!OperatingSystem.IsWindows())
+			{
+				using (var sha = SHA256.Create())
+				{
+					var data = Encoding.UTF8.GetBytes((configurationKey ?? "") + (salt ?? "") + (appConfig.CodeSignatureHash ?? "SafeExamBrowserLinux"));
+					browserExamKey = BitConverter.ToString(sha.ComputeHash(data)).Replace("-", "").ToLowerInvariant();
+					return true;
+				}
+			}
+
 			browserExamKey = default;
 
 			try
@@ -164,6 +200,16 @@ namespace SafeExamBrowser.Integrity
 
 		public bool TryGenerateVerificatorCode(string payload, out string code)
 		{
+			if (!OperatingSystem.IsWindows())
+			{
+				using (var sha = SHA256.Create())
+				{
+					var hash = sha.ComputeHash(Encoding.UTF8.GetBytes(payload ?? ""));
+					code = Convert.ToBase64String(hash).Substring(0, 8).ToUpperInvariant();
+					return true;
+				}
+			}
+
 			var success = false;
 
 			code = default;
@@ -192,6 +238,12 @@ namespace SafeExamBrowser.Integrity
 
 		public bool TryVerifyCodeSignature(out bool isValid)
 		{
+			if (!OperatingSystem.IsWindows())
+			{
+				isValid = !string.IsNullOrEmpty(appConfig.CodeSignatureHash);
+				return true;
+			}
+
 			var success = false;
 
 			isValid = default;
@@ -215,6 +267,36 @@ namespace SafeExamBrowser.Integrity
 
 		public bool TryVerifyRuntimeIntegrity(out bool isValid)
 		{
+			if (!OperatingSystem.IsWindows())
+			{
+				isValid = true;
+
+				try
+				{
+					if (File.Exists("/proc/self/status"))
+					{
+						var lines = File.ReadAllLines("/proc/self/status");
+						var tracerLine = lines.FirstOrDefault(l => l.StartsWith("TracerPid:", StringComparison.OrdinalIgnoreCase));
+
+						if (tracerLine != null)
+						{
+							var pidStr = tracerLine.Split(':')[1].Trim();
+
+							if (int.TryParse(pidStr, out var tracerPid) && tracerPid > 0)
+							{
+								logger.Warn($"Runtime integrity check: process is being traced by PID {tracerPid}!");
+								isValid = false;
+							}
+						}
+					}
+				}
+				catch
+				{
+				}
+
+				return true;
+			}
+
 			var success = false;
 
 			isValid = default;

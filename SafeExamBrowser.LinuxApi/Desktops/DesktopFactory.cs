@@ -68,6 +68,12 @@ namespace SafeExamBrowser.LinuxApi.Desktops
 
 		private LinuxDesktop Start(string name, IntPtr obfuscatedHandle, string obfuscatedName)
 		{
+			if (Environment.GetEnvironmentVariable("SEB_USE_CURRENT_DESKTOP") == "1" || Environment.GetEnvironmentVariable("SEB_KIOSK_DESKTOP") == "0")
+			{
+				logger.Info("Bypassing nested X server as requested by environment variable, using current desktop.");
+				return LinuxDesktop.CreateCurrent(Environment.GetEnvironmentVariable("DISPLAY") ?? ":0");
+			}
+
 			var number = FindFreeDisplayNumber();
 			var display = $":{number}";
 			var authority = CreateAuthority(display);
@@ -97,7 +103,7 @@ namespace SafeExamBrowser.LinuxApi.Desktops
 				server = Launch("Xvfb", $"{display} -screen 0 1920x1080x24 -nolisten tcp -auth \"{authority}\"", null, null);
 			}
 
-			if (server == null || !WaitForServer(display, authority))
+			if (server == null || !WaitForServer(server, display, authority))
 			{
 				if (server != null)
 				{
@@ -115,6 +121,8 @@ namespace SafeExamBrowser.LinuxApi.Desktops
 
 		private System.Diagnostics.Process StartWindowManager(string display, string authority)
 		{
+			Launch("xsetroot", "-solid \"#1e1e2e\"", display, authority);
+
 			foreach (var wm in WindowManagers)
 			{
 				var process = Launch(wm, string.Empty, display, authority);
@@ -156,16 +164,22 @@ namespace SafeExamBrowser.LinuxApi.Desktops
 			}
 		}
 
-		private bool WaitForServer(string display, string authority)
+		private bool WaitForServer(System.Diagnostics.Process server, string display, string authority)
 		{
 			var previous = Environment.GetEnvironmentVariable("XAUTHORITY");
 
 			try
 			{
 				Environment.SetEnvironmentVariable("XAUTHORITY", authority);
+				LibC.setenv("XAUTHORITY", authority, 1);
 
 				for (var attempt = 0; attempt < 50; attempt++)
 				{
+					if (server != null && server.HasExited)
+					{
+						return false;
+					}
+
 					if (X11Display.TryOpen(out var connection, display))
 					{
 						connection.Dispose();
@@ -181,6 +195,15 @@ namespace SafeExamBrowser.LinuxApi.Desktops
 			finally
 			{
 				Environment.SetEnvironmentVariable("XAUTHORITY", previous);
+
+				if (previous != null)
+				{
+					LibC.setenv("XAUTHORITY", previous, 1);
+				}
+				else
+				{
+					LibC.unsetenv("XAUTHORITY");
+				}
 			}
 		}
 
@@ -206,7 +229,7 @@ namespace SafeExamBrowser.LinuxApi.Desktops
 			File.WriteAllBytes(path, new byte[0]);
 			File.SetUnixFileMode(path, UnixFileMode.UserRead | UnixFileMode.UserWrite);
 
-			using (var xauth = System.Diagnostics.Process.Start(new ProcessStartInfo("xauth", $"-f \"{path}\" add {display} . {hex}") { UseShellExecute = false }))
+			using (var xauth = System.Diagnostics.Process.Start(new ProcessStartInfo("xauth", $"-f \"{path}\" add {display} MIT-MAGIC-COOKIE-1 {hex}") { UseShellExecute = false }))
 			{
 				xauth.WaitForExit();
 

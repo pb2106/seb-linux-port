@@ -9,6 +9,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using SafeExamBrowser.Applications.Contracts;
@@ -127,9 +128,17 @@ namespace SafeExamBrowser.UserInterface.Shared
 
 	public class CrossPlatformBrowserWindow : CrossPlatformWindow, IBrowserWindow
 	{
+		private readonly IBrowserControl control;
+		private readonly BrowserSettings settings;
+		private readonly bool isMainWindow;
+		private readonly ILogger logger;
+		private Process browserProcess;
+		private string profileDir;
+		private string currentUrl;
+
 		public bool CanNavigateBackwards { set { } }
 		public bool CanNavigateForwards { set { } }
-		public IntPtr Handle => IntPtr.Zero;
+		public IntPtr Handle => browserProcess != null && !browserProcess.HasExited ? browserProcess.MainWindowHandle : IntPtr.Zero;
 
 		public event AddressChangedEventHandler AddressChanged;
 		public event ActionRequestedEventHandler BackwardNavigationRequested;
@@ -143,17 +152,311 @@ namespace SafeExamBrowser.UserInterface.Shared
 		public event ActionRequestedEventHandler ZoomOutRequested;
 		public event ActionRequestedEventHandler ZoomResetRequested;
 
+		public CrossPlatformBrowserWindow(IBrowserControl control = null, BrowserSettings settings = null, bool isMainWindow = true, ILogger logger = null)
+		{
+			this.control = control;
+			this.settings = settings;
+			this.isMainWindow = isMainWindow;
+			this.logger = logger;
+		}
+
 		public void FocusAddressBar() { }
 		public void FocusBrowser() { }
 		public void FocusToolbar(bool forward) { }
 		public void ShowFindbar() { }
-		public void UpdateAddress(string address) { }
+
+		public void UpdateAddress(string address)
+		{
+			currentUrl = address;
+			AddressChanged?.Invoke(address);
+		}
+
 		public void UpdateIcon(IconResource icon) { }
 		public void UpdateDownloadState(DownloadItemState state) { }
 		public void UpdateLoadingState(bool isLoading) { }
 		public void UpdateProgress(double value) { }
 		public void UpdateTitle(string title) { }
 		public void UpdateZoomLevel(double value) { }
+
+		public override void Show()
+		{
+			base.Show();
+			StartBrowserProcess();
+		}
+
+		public override void Close()
+		{
+			StopBrowserProcess();
+			base.Close();
+		}
+
+		private void StartBrowserProcess()
+		{
+			if (browserProcess != null && !browserProcess.HasExited)
+			{
+				return;
+			}
+
+			var targetUrl = !string.IsNullOrWhiteSpace(currentUrl) ? currentUrl : settings?.StartUrl;
+			if (string.IsNullOrWhiteSpace(targetUrl))
+			{
+				targetUrl = "https://www.safeexambrowser.org/start";
+			}
+
+			var (executable, arguments, profilePath) = ResolveBrowserCommand(targetUrl);
+			if (executable == null)
+			{
+				logger?.Error("No suitable Linux browser found to display URL: " + targetUrl);
+				return;
+			}
+
+			profileDir = profilePath;
+
+			try
+			{
+				var startInfo = new ProcessStartInfo(executable, arguments)
+				{
+					UseShellExecute = false,
+					WorkingDirectory = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)
+				};
+
+				// Prevent browser from connecting to outer Wayland compositor; force X11 and software GL
+				startInfo.Environment.Remove("WAYLAND_DISPLAY");
+				startInfo.Environment["GDK_BACKEND"] = "x11";
+				startInfo.Environment["MOZ_ENABLE_WAYLAND"] = "0";
+				startInfo.Environment["MOZ_X11_EGL"] = "0";
+				startInfo.Environment["MOZ_DISABLE_CONTENT_SANDBOX"] = "1";
+				startInfo.Environment["MOZ_FORCE_DISABLE_EGL"] = "1";
+				startInfo.Environment["LIBGL_ALWAYS_SOFTWARE"] = "1";
+				startInfo.Environment["QT_QPA_PLATFORM"] = "xcb";
+
+				var currentDisplay = Environment.GetEnvironmentVariable("DISPLAY");
+				if (!string.IsNullOrEmpty(currentDisplay))
+				{
+					startInfo.Environment["DISPLAY"] = currentDisplay;
+				}
+
+				var currentAuth = Environment.GetEnvironmentVariable("XAUTHORITY");
+				if (!string.IsNullOrEmpty(currentAuth))
+				{
+					startInfo.Environment["XAUTHORITY"] = currentAuth;
+				}
+
+				var sudoUser = Environment.GetEnvironmentVariable("SUDO_USER");
+				if (!string.IsNullOrEmpty(sudoUser) && (Environment.UserName == "root" || Environment.GetEnvironmentVariable("USER") == "root"))
+				{
+					// If started with sudo, running browsers (especially Firefox) directly as root
+					// will be rejected because the X11 session and authority belong to the desktop user.
+					if (!string.IsNullOrEmpty(profileDir) && Directory.Exists(profileDir))
+					{
+						try
+						{
+							var chown = Process.Start(new ProcessStartInfo("chown", $"-R {sudoUser}:{sudoUser} \"{profileDir}\"") { UseShellExecute = false });
+							chown?.WaitForExit(1000);
+						}
+						catch { }
+					}
+
+					Console.WriteLine($"[SEB Linux] Detected sudo execution: launching browser as user '{sudoUser}'...");
+					var fullCmd = $"{executable} {arguments}";
+					startInfo.FileName = "su";
+					startInfo.Arguments = $"{sudoUser} -c \"{fullCmd.Replace("\"", "\\\"")}\"";
+				}
+
+				Console.WriteLine($"[SEB Linux] Selected browser executable: '{executable}'");
+				Console.WriteLine($"[SEB Linux] Command: {executable} {arguments}");
+				Console.WriteLine($"[SEB Linux] Target URL: '{targetUrl}' on DISPLAY '{currentDisplay}'");
+
+				browserProcess = Process.Start(startInfo);
+				logger?.Info($"Started Linux browser process '{executable}' with PID {browserProcess?.Id} on DISPLAY '{currentDisplay}' loading '{targetUrl}'.");
+
+				if (browserProcess != null)
+				{
+					browserProcess.EnableRaisingEvents = true;
+					browserProcess.Exited += (s, e) =>
+					{
+						Console.WriteLine($"[SEB Linux] Browser process {browserProcess?.Id} exited with code {browserProcess?.ExitCode}.");
+						logger?.Info("Browser process exited.");
+						Close();
+					};
+				}
+			}
+			catch (Exception ex)
+			{
+				Console.WriteLine($"[SEB Linux] Failed to start browser process '{executable}': {ex.Message}");
+				logger?.Error($"Failed to start browser process '{executable}': {ex.Message}", ex);
+			}
+		}
+
+		private void StopBrowserProcess()
+		{
+			try
+			{
+				if (browserProcess != null && !browserProcess.HasExited)
+				{
+					browserProcess.Kill();
+					browserProcess.WaitForExit(2000);
+				}
+			}
+			catch
+			{
+			}
+			finally
+			{
+				browserProcess = null;
+			}
+
+			if (!string.IsNullOrEmpty(profileDir) && Directory.Exists(profileDir))
+			{
+				try
+				{
+					Directory.Delete(profileDir, true);
+				}
+				catch
+				{
+				}
+			}
+		}
+
+		private static (string executable, string arguments, string profilePath) ResolveBrowserCommand(string url)
+		{
+			var tempProfile = Path.Combine(Path.GetTempPath(), $"seb_profile_{Guid.NewGuid():N}");
+
+			// 1. Check user override via environment variable SEB_BROWSER
+			var customBrowser = Environment.GetEnvironmentVariable("SEB_BROWSER");
+			if (!string.IsNullOrWhiteSpace(customBrowser))
+			{
+				var customPath = FindExecutable(customBrowser);
+				if (customPath != null)
+				{
+					var customLower = customPath.ToLowerInvariant();
+					if (customLower.Contains("firefox"))
+					{
+						return PrepareFirefox(customPath, url, tempProfile);
+					}
+					else if (customLower.Contains("chrome") || customLower.Contains("chromium") || customLower.Contains("brave"))
+					{
+						return PrepareChromium(customPath, url, tempProfile);
+					}
+					else
+					{
+						return (customPath, $"\"{url}\"", null);
+					}
+				}
+			}
+
+			// 2. Check Firefox first (most reliable on Xephyr / X11 without GPU hardware acceleration issues)
+			var firefoxCandidates = new[] { "firefox", "firefox-esr" };
+			foreach (var candidate in firefoxCandidates)
+			{
+				var path = FindExecutable(candidate);
+				if (path != null)
+				{
+					return PrepareFirefox(path, url, tempProfile);
+				}
+			}
+
+			// 3. Check Chromium / Google Chrome / Brave (requires --disable-gpu and --no-sandbox on Xephyr)
+			var chromiumCandidates = new[] { "chromium", "chromium-browser", "google-chrome", "google-chrome-stable", "brave-browser", "brave" };
+			foreach (var candidate in chromiumCandidates)
+			{
+				var path = FindExecutable(candidate);
+				if (path != null)
+				{
+					return PrepareChromium(path, url, tempProfile);
+				}
+			}
+
+			// 4. Check Epiphany
+			var epiphanyCandidates = new[] { "epiphany-browser", "epiphany" };
+			foreach (var candidate in epiphanyCandidates)
+			{
+				var path = FindExecutable(candidate);
+				if (path != null)
+				{
+					return (path, $"--application-mode \"{url}\"", null);
+				}
+			}
+
+			// 5. Fallback: xdg-open
+			var xdgOpen = FindExecutable("xdg-open");
+			if (xdgOpen != null)
+			{
+				return (xdgOpen, $"\"{url}\"", null);
+			}
+
+			return (null, null, null);
+		}
+
+		private static (string executable, string arguments, string profilePath) PrepareFirefox(string path, string url, string tempProfile)
+		{
+			try
+			{
+				Directory.CreateDirectory(tempProfile);
+				File.WriteAllText(Path.Combine(tempProfile, "user.js"),
+					"user_pref(\"browser.startup.homepage_override.mstone\", \"ignore\");\n" +
+					"user_pref(\"browser.shell.checkDefaultBrowser\", false);\n" +
+					"user_pref(\"toolkit.telemetry.reportingpolicy.firstRun\", false);\n" +
+					"user_pref(\"datareporting.policy.dataSubmissionPolicyAcceptedVersion\", 2);\n" +
+					"user_pref(\"layers.acceleration.disabled\", true);\n" +
+					"user_pref(\"gfx.webrender.all\", false);\n" +
+					"user_pref(\"gfx.webrender.software\", true);\n");
+			}
+			catch { }
+
+			var args = $"--no-remote --new-instance --profile \"{tempProfile}\" --kiosk \"{url}\"";
+			return (path, args, tempProfile);
+		}
+
+		private static (string executable, string arguments, string profilePath) PrepareChromium(string path, string url, string tempProfile)
+		{
+			var args = $"--kiosk --no-first-run --no-default-browser-check --disable-translate --disable-gpu --disable-software-rasterizer --no-sandbox --disable-dev-shm-usage --user-data-dir=\"{tempProfile}\" \"{url}\"";
+			return (path, args, tempProfile);
+		}
+
+		private static string FindExecutable(string name)
+		{
+			if (string.IsNullOrWhiteSpace(name))
+			{
+				return null;
+			}
+
+			if (File.Exists(name))
+			{
+				try
+				{
+					var linkTarget = File.ResolveLinkTarget(name, true);
+					if (linkTarget != null && !File.Exists(linkTarget.FullName))
+					{
+						return null; // broken symlink
+					}
+				}
+				catch { }
+				return name;
+			}
+
+			var pathEnv = Environment.GetEnvironmentVariable("PATH") ?? "/usr/bin:/bin:/usr/local/bin";
+			foreach (var dir in pathEnv.Split(':'))
+			{
+				if (string.IsNullOrWhiteSpace(dir)) continue;
+				var full = Path.Combine(dir.Trim(), name);
+				if (File.Exists(full))
+				{
+					try
+					{
+						var linkTarget = File.ResolveLinkTarget(full, true);
+						if (linkTarget != null && !File.Exists(linkTarget.FullName))
+						{
+							continue; // broken symlink
+						}
+					}
+					catch { }
+					return full;
+				}
+			}
+
+			return null;
+		}
 	}
 
 	public class CrossPlatformCredentialsDialog : CrossPlatformWindow, ICredentialsDialog

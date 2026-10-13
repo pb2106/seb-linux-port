@@ -154,14 +154,29 @@ sudo ./SafeExamBrowser.Service/bin/Debug/net8.0/SafeExamBrowser.Service
 
 ```bash
 # Run with default settings (or ~/.config/SafeExamBrowser/SebClientSettings.seb if present)
-./SafeExamBrowser.Runtime/bin/Debug/net8.0/SafeExamBrowser
+./dist/linux-x64/SafeExamBrowser
 
 # Run with a specific .seb configuration file or seb:// URI
-./SafeExamBrowser.Runtime/bin/Debug/net8.0/SafeExamBrowser /path/to/exam.seb
+./dist/linux-x64/SafeExamBrowser /path/to/exam.seb
 
 # Or run directly via the .NET CLI
 .tools/dotnet/dotnet run --project SafeExamBrowser.Runtime -- /path/to/exam.seb
 ```
+
+### Linux Browser Selection & Display Options
+
+You can control browser execution and kiosk display behavior using environment variables:
+
+| Environment Variable | Description | Example |
+| :--- | :--- | :--- |
+| `SEB_BROWSER` | Explicitly specify browser binary or candidate name | `SEB_BROWSER=firefox ./dist/linux-x64/SafeExamBrowser /path/to/exam.seb` |
+| `SEB_USE_CURRENT_DESKTOP=1` | Run on the active desktop session instead of spawning a nested `Xephyr` X server | `SEB_USE_CURRENT_DESKTOP=1 ./dist/linux-x64/SafeExamBrowser /path/to/exam.seb` |
+| `SEB_KIOSK_DESKTOP=0` | Equivalent to `SEB_USE_CURRENT_DESKTOP=1` | `SEB_KIOSK_DESKTOP=0 ./dist/linux-x64/SafeExamBrowser /path/to/exam.seb` |
+
+#### Browser Compatibility Notes:
+- **Mozilla Firefox / Firefox ESR** (Recommended): Supported natively in kiosk mode (`--kiosk --no-remote`). Unprivileged user namespaces are automatically handled via `MOZ_DISABLE_CONTENT_SANDBOX=1` and software GL fallback.
+- **Chromium / Google Chrome / Brave**: Fully supported with hardware acceleration disabled (`--disable-gpu --disable-software-rasterizer --no-sandbox --disable-dev-shm-usage --kiosk`).
+- **Wayland / KDE Plasma**: When running on Wayland compositors (like KDE Plasma or GNOME Wayland), using `SEB_USE_CURRENT_DESKTOP=1` lets the browser run directly in your session.
 
 ### Running the Reset Utility
 If an exam session was forcefully terminated and you need to reset feature/lockdown backups:

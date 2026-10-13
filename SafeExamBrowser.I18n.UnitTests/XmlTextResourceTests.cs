@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) 2026 ETH Zürich, IT Services
  * 
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -22,7 +22,7 @@ namespace SafeExamBrowser.I18n.UnitTests
 		public void MustCorrectlyLoadData()
 		{
 			var location = Assembly.GetAssembly(typeof(XmlTextResourceTests)).Location;
-			var path = $@"{Path.GetDirectoryName(location)}\Text_Valid.xml";
+			var path = Path.Combine(Path.GetDirectoryName(location), "Text_Valid.xml");
 			var stream = new FileStream(path, FileMode.Open, FileAccess.Read);
 			var sut = new XmlTextResource(stream);
 
@@ -38,7 +38,7 @@ namespace SafeExamBrowser.I18n.UnitTests
 		public void MustFailWithInvalidData()
 		{
 			var location = Assembly.GetAssembly(typeof(XmlTextResourceTests)).Location;
-			var path = $@"{Path.GetDirectoryName(location)}\Text_Invalid.txt";
+			var path = Path.Combine(Path.GetDirectoryName(location), "Text_Invalid.txt");
 			var stream = new FileStream(path, FileMode.Open, FileAccess.Read);
 			var sut = new XmlTextResource(stream);
 
@@ -49,7 +49,7 @@ namespace SafeExamBrowser.I18n.UnitTests
 		public void MustNeverReturnNull()
 		{
 			var location = Assembly.GetAssembly(typeof(XmlTextResourceTests)).Location;
-			var path = $@"{Path.GetDirectoryName(location)}\Text_Incompatible.xml";
+			var path = Path.Combine(Path.GetDirectoryName(location), "Text_Incompatible.xml");
 			var stream = new FileStream(path, FileMode.Open, FileAccess.Read);
 			var sut = new XmlTextResource(stream);
 
@@ -63,7 +63,7 @@ namespace SafeExamBrowser.I18n.UnitTests
 		public void MustNeverSetNullValue()
 		{
 			var location = Assembly.GetAssembly(typeof(XmlTextResourceTests)).Location;
-			var path = $@"{Path.GetDirectoryName(location)}\Text_Valid.xml";
+			var path = Path.Combine(Path.GetDirectoryName(location), "Text_Valid.xml");
 			var stream = new FileStream(path, FileMode.Open, FileAccess.Read);
 			var sut = new XmlTextResource(stream);
 
@@ -83,7 +83,7 @@ namespace SafeExamBrowser.I18n.UnitTests
 		public void MustTrimValues()
 		{
 			var location = Assembly.GetAssembly(typeof(XmlTextResourceTests)).Location;
-			var path = $@"{Path.GetDirectoryName(location)}\Text_Valid.xml";
+			var path = Path.Combine(Path.GetDirectoryName(location), "Text_Valid.xml");
 			var stream = new FileStream(path, FileMode.Open, FileAccess.Read);
 			var sut = new XmlTextResource(stream);
 

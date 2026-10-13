@@ -68,6 +68,12 @@ namespace SafeExamBrowser.LinuxApi.Native
 		[DllImport("libc", SetLastError = true)]
 		internal static extern uint geteuid();
 
+		[DllImport("libc", SetLastError = true)]
+		internal static extern int setenv([MarshalAs(UnmanagedType.LPStr)] string name, [MarshalAs(UnmanagedType.LPStr)] string value, int overwrite);
+
+		[DllImport("libc", SetLastError = true)]
+		internal static extern int unsetenv([MarshalAs(UnmanagedType.LPStr)] string name);
+
 		// _IOC(dir, type, nr, size) as defined in <asm-generic/ioctl.h>
 		internal static ulong IOC(uint dir, uint type, uint nr, uint size)
 		{

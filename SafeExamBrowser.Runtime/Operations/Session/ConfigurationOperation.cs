@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) 2026 ETH Zürich, IT Services
  * 
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -410,9 +410,55 @@ namespace SafeExamBrowser.Runtime.Operations.Session
 
 			if (commandLineArgs?.Length > 1)
 			{
-				isValidUri = Uri.TryCreate(commandLineArgs[1], UriKind.Absolute, out uri);
+				var arg = commandLineArgs[1];
+				if (!string.IsNullOrWhiteSpace(arg))
+				{
+					var expandedArg = arg;
+					var home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+
+					if (expandedArg.StartsWith("~/") || expandedArg == "~")
+					{
+						if (!string.IsNullOrEmpty(home))
+						{
+							expandedArg = Path.Combine(home, expandedArg.Length > 2 ? expandedArg.Substring(2) : string.Empty);
+						}
+					}
+
+					if (File.Exists(expandedArg))
+					{
+						isValidUri = Uri.TryCreate(Path.GetFullPath(expandedArg), UriKind.Absolute, out uri);
+					}
+					else if (Uri.TryCreate(expandedArg, UriKind.Absolute, out uri) && (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps || uri.Scheme == "seb" || uri.Scheme == "sebs" || uri.IsFile))
+					{
+						isValidUri = true;
+					}
+					else
+					{
+						try
+						{
+							var fullPath = Path.GetFullPath(expandedArg);
+							if (File.Exists(fullPath))
+							{
+								isValidUri = Uri.TryCreate(fullPath, UriKind.Absolute, out uri);
+							}
+							else if (!string.IsNullOrEmpty(home))
+							{
+								var downloadsCandidate = Path.Combine(home, "Downloads", Path.GetFileName(arg));
+								if (File.Exists(downloadsCandidate))
+								{
+									isValidUri = Uri.TryCreate(downloadsCandidate, UriKind.Absolute, out uri);
+									Logger.Info($"Resolved configuration file '{arg}' to '{downloadsCandidate}'.");
+								}
+							}
+						}
+						catch
+						{
+						}
+					}
+				}
+
 				source = UriSource.CommandLine;
-				Logger.Info($"Found command-line argument for configuration resource: '{uri}', the URI is {(isValidUri ? "valid" : "invalid")}.");
+				Logger.Info($"Found command-line argument for configuration resource: '{arg}' (resolved: '{uri}'), the URI is {(isValidUri ? "valid" : "invalid")}.");
 			}
 
 			if (!isValidUri && File.Exists(ProgramDataFilePath))
