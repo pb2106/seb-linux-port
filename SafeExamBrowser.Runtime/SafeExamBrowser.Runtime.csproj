@@ -1,0 +1,49 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>SafeExamBrowser.Runtime</RootNamespace>
+    <AssemblyName>SafeExamBrowser</AssemblyName>
+    <LangVersion>latest</LangVersion>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <EnableDefaultEmbeddedResourceItems>false</EnableDefaultEmbeddedResourceItems>
+    <EnableDefaultNoneItems>false</EnableDefaultNoneItems>
+    <EnableUnsafeBinaryFormatterSerialization>true</EnableUnsafeBinaryFormatterSerialization>
+    <NoWarn>$(NoWarn);CS0618;CS0168;CS0219;CS0067;CS8981;SYSLIB0011;SYSLIB0014;SYSLIB0021;SYSLIB0022;SYSLIB0023;SYSLIB0041;SYSLIB0045;SYSLIB0051</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../SafeExamBrowser.Communication.Contracts/SafeExamBrowser.Communication.Contracts.csproj" />
+    <ProjectReference Include="../SafeExamBrowser.Communication/SafeExamBrowser.Communication.csproj" />
+    <ProjectReference Include="../SafeExamBrowser.Configuration.Contracts/SafeExamBrowser.Configuration.Contracts.csproj" />
+    <ProjectReference Include="../SafeExamBrowser.Configuration/SafeExamBrowser.Configuration.csproj" />
+    <ProjectReference Include="../SafeExamBrowser.Core.Contracts/SafeExamBrowser.Core.Contracts.csproj" />
+    <ProjectReference Include="../SafeExamBrowser.Core/SafeExamBrowser.Core.csproj" />
+    <ProjectReference Include="../SafeExamBrowser.I18n.Contracts/SafeExamBrowser.I18n.Contracts.csproj" />
+    <ProjectReference Include="../SafeExamBrowser.I18n/SafeExamBrowser.I18n.csproj" />
+    <ProjectReference Include="../SafeExamBrowser.Integrity.Contracts/SafeExamBrowser.Integrity.Contracts.csproj" />
+    <ProjectReference Include="../SafeExamBrowser.Integrity/SafeExamBrowser.Integrity.csproj" />
+    <ProjectReference Include="../SafeExamBrowser.Logging.Contracts/SafeExamBrowser.Logging.Contracts.csproj" />
+    <ProjectReference Include="../SafeExamBrowser.Logging/SafeExamBrowser.Logging.csproj" />
+    <ProjectReference Include="../SafeExamBrowser.Monitoring.Contracts/SafeExamBrowser.Monitoring.Contracts.csproj" />
+    <ProjectReference Include="../SafeExamBrowser.Monitoring/SafeExamBrowser.Monitoring.csproj" />
+    <ProjectReference Include="../SafeExamBrowser.Server.Contracts/SafeExamBrowser.Server.Contracts.csproj" />
+    <ProjectReference Include="../SafeExamBrowser.Server/SafeExamBrowser.Server.csproj" />
+    <ProjectReference Include="../SafeExamBrowser.Settings/SafeExamBrowser.Settings.csproj" />
+    <ProjectReference Include="../SafeExamBrowser.SystemComponents.Contracts/SafeExamBrowser.SystemComponents.Contracts.csproj" />
+    <ProjectReference Include="../SafeExamBrowser.SystemComponents/SafeExamBrowser.SystemComponents.csproj" />
+    <ProjectReference Include="../SafeExamBrowser.UserInterface.Contracts/SafeExamBrowser.UserInterface.Contracts.csproj" />
+    <ProjectReference Include="../SafeExamBrowser.UserInterface.Desktop/SafeExamBrowser.UserInterface.Desktop.csproj" />
+    <ProjectReference Include="../SafeExamBrowser.WindowsApi.Contracts/SafeExamBrowser.WindowsApi.Contracts.csproj" />
+    <ProjectReference Include="../SafeExamBrowser.LinuxApi/SafeExamBrowser.LinuxApi.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="Properties/Settings.Designer.cs" />
+    <EmbeddedResource Include="Properties/Resources.resx" />
+  </ItemGroup>
+
+</Project>

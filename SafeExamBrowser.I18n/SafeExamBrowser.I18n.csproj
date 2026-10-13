@@ -1,0 +1,38 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <RootNamespace>SafeExamBrowser.I18n</RootNamespace>
+    <AssemblyName>SafeExamBrowser.I18n</AssemblyName>
+    <LangVersion>latest</LangVersion>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <EnableDefaultEmbeddedResourceItems>false</EnableDefaultEmbeddedResourceItems>
+    <EnableDefaultNoneItems>false</EnableDefaultNoneItems>
+    <NoWarn>$(NoWarn);CS0618;CS0168;CS0219;CS0067;CS8981;SYSLIB0011;SYSLIB0014;SYSLIB0021;SYSLIB0022;SYSLIB0023;SYSLIB0041;SYSLIB0045;SYSLIB0051</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../SafeExamBrowser.I18n.Contracts/SafeExamBrowser.I18n.Contracts.csproj" />
+    <ProjectReference Include="../SafeExamBrowser.Logging.Contracts/SafeExamBrowser.Logging.Contracts.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Data/en.xml" />
+    <EmbeddedResource Include="Data/de.xml" />
+    <EmbeddedResource Include="Data/it.xml" />
+    <EmbeddedResource Include="Data/zh.xml" />
+    <EmbeddedResource Include="Data/fr.xml" />
+    <EmbeddedResource Include="Data/es.xml" />
+    <EmbeddedResource Include="Data/nl.xml" />
+    <EmbeddedResource Include="Data/ru.xml" />
+    <EmbeddedResource Include="Data/et.xml" />
+    <EmbeddedResource Include="Data/id.xml" />
+    <EmbeddedResource Include="Data/ro.xml" />
+    <EmbeddedResource Include="Data/tr.xml" />
+    <EmbeddedResource Include="Data/ja.xml" />
+    <EmbeddedResource Include="Data/sv.xml" />
+  </ItemGroup>
+
+</Project>

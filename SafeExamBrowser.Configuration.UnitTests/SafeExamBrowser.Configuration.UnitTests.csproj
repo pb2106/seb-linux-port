@@ -1,0 +1,50 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <RootNamespace>SafeExamBrowser.Configuration.UnitTests</RootNamespace>
+    <AssemblyName>SafeExamBrowser.Configuration.UnitTests</AssemblyName>
+    <LangVersion>latest</LangVersion>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <EnableDefaultEmbeddedResourceItems>false</EnableDefaultEmbeddedResourceItems>
+    <EnableDefaultNoneItems>false</EnableDefaultNoneItems>
+    <EnableUnsafeBinaryFormatterSerialization>true</EnableUnsafeBinaryFormatterSerialization>
+    <NoWarn>$(NoWarn);CS0618;CS0168;CS0219;CS0067;CS8981;SYSLIB0011;SYSLIB0014;SYSLIB0021;SYSLIB0022;SYSLIB0023;SYSLIB0041;SYSLIB0045;SYSLIB0051</NoWarn>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Azure.Monitor.OpenTelemetry.Exporter" Version="1.8.2" />
+    <PackageReference Include="Microsoft.ApplicationInsights" Version="3.1.2" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="10.0.10" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="10.0.10" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.10" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.10" />
+    <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.17.0" />
+    <PackageReference Include="System.Drawing.Common" Version="8.0.10" />
+    <PackageReference Include="Moq" Version="4.20.72" />
+    <PackageReference Include="MSTest" Version="4.3.2" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.4.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../SafeExamBrowser.Configuration.Contracts/SafeExamBrowser.Configuration.Contracts.csproj" />
+    <ProjectReference Include="../SafeExamBrowser.Configuration/SafeExamBrowser.Configuration.csproj" />
+    <ProjectReference Include="../SafeExamBrowser.Integrity.Contracts/SafeExamBrowser.Integrity.Contracts.csproj" />
+    <ProjectReference Include="../SafeExamBrowser.Logging.Contracts/SafeExamBrowser.Logging.Contracts.csproj" />
+    <ProjectReference Include="../SafeExamBrowser.Settings/SafeExamBrowser.Settings.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="DataFormats/XmlTestSettings.xml" />
+    <EmbeddedResource Include="UnitTestCert.pfx" />
+    <EmbeddedResource Include="ConfigurationData/TestDictionary1.bin" />
+    <EmbeddedResource Include="ConfigurationData/TestDictionary2.bin" />
+    <EmbeddedResource Include="ConfigurationData/TestDictionary3.bin" />
+    <EmbeddedResource Include="DataFormats/XmlTestData.xml" />
+  </ItemGroup>
+
+</Project>

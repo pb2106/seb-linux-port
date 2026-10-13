@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <RootNamespace>SafeExamBrowser.Lockdown</RootNamespace>
+    <AssemblyName>SafeExamBrowser.Lockdown</AssemblyName>
+    <LangVersion>latest</LangVersion>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <EnableDefaultEmbeddedResourceItems>false</EnableDefaultEmbeddedResourceItems>
+    <EnableDefaultNoneItems>false</EnableDefaultNoneItems>
+    <EnableUnsafeBinaryFormatterSerialization>true</EnableUnsafeBinaryFormatterSerialization>
+    <NoWarn>$(NoWarn);CS0618;CS0168;CS0219;CS0067;CS8981;SYSLIB0011;SYSLIB0014;SYSLIB0021;SYSLIB0022;SYSLIB0023;SYSLIB0041;SYSLIB0045;SYSLIB0051</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.ServiceProcess.ServiceController" Version="8.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../SafeExamBrowser.Lockdown.Contracts/SafeExamBrowser.Lockdown.Contracts.csproj" />
+    <ProjectReference Include="../SafeExamBrowser.Logging.Contracts/SafeExamBrowser.Logging.Contracts.csproj" />
+  </ItemGroup>
+
+</Project>

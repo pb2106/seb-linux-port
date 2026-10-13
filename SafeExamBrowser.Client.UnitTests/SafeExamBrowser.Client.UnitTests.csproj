@@ -1,0 +1,58 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <RootNamespace>SafeExamBrowser.Client.UnitTests</RootNamespace>
+    <AssemblyName>SafeExamBrowser.Client.UnitTests</AssemblyName>
+    <LangVersion>latest</LangVersion>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <EnableDefaultEmbeddedResourceItems>false</EnableDefaultEmbeddedResourceItems>
+    <EnableDefaultNoneItems>false</EnableDefaultNoneItems>
+    <EnableUnsafeBinaryFormatterSerialization>true</EnableUnsafeBinaryFormatterSerialization>
+    <NoWarn>$(NoWarn);CS0618;CS0168;CS0219;CS0067;CS8981;SYSLIB0011;SYSLIB0014;SYSLIB0021;SYSLIB0022;SYSLIB0023;SYSLIB0041;SYSLIB0045;SYSLIB0051</NoWarn>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Azure.Monitor.OpenTelemetry.Exporter" Version="1.8.2" />
+    <PackageReference Include="Microsoft.ApplicationInsights" Version="3.1.2" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="10.0.10" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="10.0.10" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.10" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.10" />
+    <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.17.0" />
+    <PackageReference Include="System.Drawing.Common" Version="8.0.10" />
+    <PackageReference Include="System.ServiceModel.Primitives" Version="8.1.2" />
+    <PackageReference Include="System.ServiceModel.NetNamedPipe" Version="8.1.2" />
+    <PackageReference Include="System.ServiceModel.NetTcp" Version="8.1.2" />
+    <PackageReference Include="System.ServiceModel.Http" Version="8.1.2" />
+    <PackageReference Include="Moq" Version="4.20.72" />
+    <PackageReference Include="MSTest" Version="4.3.2" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.4.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../SafeExamBrowser.Applications.Contracts/SafeExamBrowser.Applications.Contracts.csproj" />
+    <ProjectReference Include="../SafeExamBrowser.Browser.Contracts/SafeExamBrowser.Browser.Contracts.csproj" />
+    <ProjectReference Include="../SafeExamBrowser.Client/SafeExamBrowser.Client.csproj" />
+    <ProjectReference Include="../SafeExamBrowser.Communication.Contracts/SafeExamBrowser.Communication.Contracts.csproj" />
+    <ProjectReference Include="../SafeExamBrowser.Communication/SafeExamBrowser.Communication.csproj" />
+    <ProjectReference Include="../SafeExamBrowser.Configuration.Contracts/SafeExamBrowser.Configuration.Contracts.csproj" />
+    <ProjectReference Include="../SafeExamBrowser.Core.Contracts/SafeExamBrowser.Core.Contracts.csproj" />
+    <ProjectReference Include="../SafeExamBrowser.Core/SafeExamBrowser.Core.csproj" />
+    <ProjectReference Include="../SafeExamBrowser.I18n.Contracts/SafeExamBrowser.I18n.Contracts.csproj" />
+    <ProjectReference Include="../SafeExamBrowser.Integrity.Contracts/SafeExamBrowser.Integrity.Contracts.csproj" />
+    <ProjectReference Include="../SafeExamBrowser.Logging.Contracts/SafeExamBrowser.Logging.Contracts.csproj" />
+    <ProjectReference Include="../SafeExamBrowser.Monitoring.Contracts/SafeExamBrowser.Monitoring.Contracts.csproj" />
+    <ProjectReference Include="../SafeExamBrowser.Proctoring.Contracts/SafeExamBrowser.Proctoring.Contracts.csproj" />
+    <ProjectReference Include="../SafeExamBrowser.Server.Contracts/SafeExamBrowser.Server.Contracts.csproj" />
+    <ProjectReference Include="../SafeExamBrowser.Settings/SafeExamBrowser.Settings.csproj" />
+    <ProjectReference Include="../SafeExamBrowser.SystemComponents.Contracts/SafeExamBrowser.SystemComponents.Contracts.csproj" />
+    <ProjectReference Include="../SafeExamBrowser.UserInterface.Contracts/SafeExamBrowser.UserInterface.Contracts.csproj" />
+    <ProjectReference Include="../SafeExamBrowser.WindowsApi.Contracts/SafeExamBrowser.WindowsApi.Contracts.csproj" />
+  </ItemGroup>
+
+</Project>

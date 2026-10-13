@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <RootNamespace>SafeExamBrowser.Logging</RootNamespace>
+    <AssemblyName>SafeExamBrowser.Logging</AssemblyName>
+    <LangVersion>latest</LangVersion>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <EnableDefaultEmbeddedResourceItems>false</EnableDefaultEmbeddedResourceItems>
+    <EnableDefaultNoneItems>false</EnableDefaultNoneItems>
+    <NoWarn>$(NoWarn);CS0618;CS0168;CS0219;CS0067;CS8981;SYSLIB0011;SYSLIB0014;SYSLIB0021;SYSLIB0022;SYSLIB0023;SYSLIB0041;SYSLIB0045;SYSLIB0051</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../SafeExamBrowser.Configuration.Contracts/SafeExamBrowser.Configuration.Contracts.csproj" />
+    <ProjectReference Include="../SafeExamBrowser.Logging.Contracts/SafeExamBrowser.Logging.Contracts.csproj" />
+    <ProjectReference Include="../SafeExamBrowser.Settings/SafeExamBrowser.Settings.csproj" />
+    <ProjectReference Include="../SafeExamBrowser.SystemComponents.Contracts/SafeExamBrowser.SystemComponents.Contracts.csproj" />
+  </ItemGroup>
+
+</Project>
